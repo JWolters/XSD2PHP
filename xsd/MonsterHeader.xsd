@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://schemas.monster.com/MonsterHeader" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://schemas.monster.com/MonsterHeader" elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:documentation>Removed ProcInst. Removed ProcessSynchronous, will be passed in by TransportHandler.
+		Moved ProcessAsGroup down to JobPositionPostings element. Removed DeliveryReceiptRequest.
+		</xsd:documentation>
+		<xsd:documentation>Note: Do not use attributeFormDefault="qualified" due to bugs in XML Spy. Attributes turned on individually.
+		</xsd:documentation>
+	</xsd:annotation>
+	<xsd:element name="MonsterHeader">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="From" type="FromType" minOccurs="0"/>
+				<xsd:element name="ChannelId" type="xsd:string" default="58" minOccurs="0"/>
+				<xsd:element name="To" type="ToType" minOccurs="0"/>
+				<xsd:element name="MessageData" type="MessageDataType"/>
+				<xsd:element name="ProcessingReceiptRequest" type="ReceiptRequestType" minOccurs="0"/>
+				<xsd:element name="ErrorList" type="ErrorListType" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:anyAttribute processContents="skip" />
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="FromType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>The From element identifies the entity that produced the message. An optional credential can be supplied when password schemes are employed.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PartyId" type="PartyIdType"/>
+			<xsd:element name="Authentication" type="AuthenticationType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ToType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>The To element identifies the intended target of the message.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PartyId" type="PartyIdType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PartyIdType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>PartyId provides the Id of a to or from party. Types include "duns", which is a standard organizational identifier or "organization" which is a locally (Monster) meaningful name of a partner. uri is the default.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="partyType" use="required">
+					<xsd:simpleType>
+						<xsd:restriction base="xsd:string">
+							<xsd:enumeration value="uri"/>
+							<xsd:enumeration value="duns"/>
+							<xsd:enumeration value="organization"/>
+							<xsd:enumeration value="individual"/>
+						</xsd:restriction>
+					</xsd:simpleType>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="AuthenticationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>Credentials is an item used to establish the identity of the From party. The most common type is expected to be password.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="SharedSecret" type="SharedSecretType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SharedSecretType">
+		<xsd:sequence>
+			<xsd:element name="UserName" type="xsd:string"/>
+			<xsd:element name="Password" type="xsd:string" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="MessageDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>The MessageData element contains items relevant
+			to processing the message.
+			
+			The MessageId element uniquely identifies the message. It
+			is recommended that this identifier by globally
+			unique. The From party should utilize some scheme
+			combining a unique identifier for them as an entity
+			and the message. Alternatively, a Microsoft-esque
+			GUID generator could be employed. MessageId is not
+			a domain specific unique identifier (like a resume
+			id) but instead is used to correlate request and response
+			and to ensure that the same message isn't processed
+			multiple times.
+			
+			The RefToMessageId element contains the MessageId of
+			a previous message. This field is provides the
+			means to correlate a DeliveryReceipt or a 
+			ProcessingReceipt with the original Message.
+			
+			The Timestamp element  is the time at which the message
+			element was created, formatted as an XML Schema 
+			timeInstant.
+			
+			The TimeToLive element is the time by which the message
+			must be processed, formatted as an XML Schema 
+			timeInstant.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="MessageId" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<definition>uniquely identifies the message. It is recommended that this identifier is globally unique. MessageId is not a domain-specific unique identifier but instead is used to correlate request and response and to ensure that the same message isn't processed multiple times.</definition>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Timestamp" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<definition>the time at which the message header was created, formatted as an XML schema dateTime.</definition>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="RefToMessageId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<definition>contains the MessageId of a previous message. This field provides the means to correlate a DeliveryReceipt or a ProcessingReceipt with the original Message.</definition>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TimeToLive" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ReceiptRequestType">
+		<xsd:annotation>
+			<xsd:documentation>A ReceiptRequestType element is used by the From 
+			party to request a Receipt.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Address" type="TransportAddressType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TransportAddressType">
+		<xsd:annotation>
+			<xsd:documentation>
+				<definition>Address is used by the From party to define where
+			a receipt should be sent. The value of the element
+			can be empty, in that case it directs the system
+			the respond to the pre-defined address for that protocol
+			type. Additionally, the value may be ignored in
+			favor of the value defined in the profile. If file
+			is specified, the value of the address should be left
+			empty and will be ignored.
+			
+			file means to place the receipt in the local file
+			system at the location defined in the partners profile.
+			This is most often used to accomodate customers who
+			FTP content to us and then utilize FTP to poll a local
+			directory for status.</definition>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="transportType" use="required">
+					<xsd:simpleType>
+						<xsd:restriction base="xsd:string">
+							<xsd:enumeration value="http"/>
+							<xsd:enumeration value="https"/>
+							<xsd:enumeration value="smtp"/>
+							<xsd:enumeration value="ftp"/>
+							<xsd:enumeration value="file"/>
+						</xsd:restriction>
+					</xsd:simpleType>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="ErrorListType">
+		<xsd:annotation>
+			<xsd:documentation/>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Error" type="xsd:string" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>
