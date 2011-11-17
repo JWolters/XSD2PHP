@@ -8,4 +8,5 @@ include __DIR__.'/XSD2PHP.php';
 date_default_timezone_set('Europe/Amsterdam');
 
 $XSD2PHP = new XSD2PHP();
-$XSD2PHP->analyze('Job.xsd');
+//$XSD2PHP->analyze('Job.xsd');
+$XSD2PHP->parse('Job.xsd');
