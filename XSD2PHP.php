@@ -125,7 +125,7 @@ class XSD2PHP {
 		}
 		$restrictions = $this->DOMXPath->query($XPathQuery);
 		if ($restrictions->length == 0) {
-			return $constVars;
+			return '';
 		}
 		$restriction = $restrictions->item(0)->attributes->getNamedItem('base')->nodeValue;
 
@@ -136,6 +136,8 @@ class XSD2PHP {
 					$value = $enumeration->attributes->getNamedItem('value')->nodeValue;
 					$constVars[] = $value;
 				}
+
+				return $restriction.' '.implode('|', $constVars);
 				break;
 
 			case 'xsd:integer':
@@ -148,10 +150,7 @@ class XSD2PHP {
 				if (is_null($minInclusive) || is_null($maxInclusive)) {
 					throw new Exception($name.' has restriction '.$restriction.' but no minInclusive or maxInclusive');
 				}
-				$constVars= array(
-					'minInclusive' => $minInclusive,
-					'maxInclusive' => $maxInclusive
-				);
+				return $restriction.' minInclusive:'.$minInclusive.'|maxInclusive:'.$maxInclusive;
 				break;
 
 			case 'xsd:decimal':
@@ -164,10 +163,7 @@ class XSD2PHP {
 				if (is_null($fractionDigits) || is_null($minInclusive)) {
 					throw new Exception($name.' has restriction '.$restriction.' but no fractionDigits or minInclusive');
 				}
-				$constVars = array(
-					'fractionDigits' => $fractionDigits,
-					'minInclusive'   => $minInclusive
-				);
+					return $restriction.' fractionDigits:'.$fractionDigits.'|minInclusive:'.$minInclusive;
 				break;
 
 			default:
@@ -317,7 +313,7 @@ class XSD2PHP {
 			$return[] = "\t\t/* {$attribute['docu']} */".PHP_EOL.
 				"\t\t '{$attribute['name']}' => array(".PHP_EOL.
 				"\t\t\t'attribute' => '{$attribute['name']}',".PHP_EOL.
-				"\t\t\t/* @var ".implode('|', $attribute['enum'])."{$attribute['type']} */".PHP_EOL.
+				"\t\t\t/* @var {$attribute['type']} */".PHP_EOL.
 				"\t\t\t'codelist' => '{$attribute['type']}'".PHP_EOL.
 				"\t\t)";
 
@@ -382,15 +378,18 @@ class XSD2PHP {
 
 		foreach ($attributes as $attribute) {
 			$name = $attribute->getAttribute('name');
+			$type = $attribute->getAttribute('type');
+			if (empty($type)) {
+				$type = $this->parseEnumerationSimple($name, 'attribute');
+			}
 			$return[] = array(
 				'name' => $name,
-				'type' => $attribute->getAttribute('type'),
+				'type' => $type,
 				'use'  => $attribute->getAttribute('use'),
 				'docu' => $this->formatDocumentation(
 					$this->parseDocumentation('attribute', $name),
 					2
-				),
-				'enum' => $this->parseEnumerationSimple($name, 'attribute')
+				)
 			);
 
 		}
@@ -920,7 +919,7 @@ class XSD2PHP {
 //	</xsd:annotation>
 //</xsd:element>
 
-//TODO:
+//TODO: done
 //<xsd:complexType name="StandardAAPJobGroupEnumStr">
 //	<xsd:simpleContent>
 //		<xsd:extension base="xsd:string">
@@ -929,7 +928,7 @@ class XSD2PHP {
 //	</xsd:simpleContent>
 //</xsd:complexType>
 
-//TODO:
+//TODO: done
 //<xsd:element name="MoveJob">
 //	<xsd:annotation>
 //		<xsd:documentation>Action of Move / Copy, and days until action happens.
